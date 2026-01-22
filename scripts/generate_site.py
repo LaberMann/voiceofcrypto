@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # scripts/generate_site.py
 #
-# VoiceofCrypto — Matrix Terminal Brief (EN then ZH)
+# VoiceOfCrypto — Matrix Terminal Brief (EN then ZH)
 # - EN: typewriter / terminal
 # - ZH: Songti-style body, terminal-style headers & tags
 # - ASCII logo + 🐶
 # - Breaking rows: highlighted + subtle pulse (CSS)
+# - Matrix-style math rain background (canvas)
 # - Output: <out>/index.html + <out>/.nojekyll
 
 import argparse
@@ -169,42 +170,148 @@ def render_section(items, prefix):
     return "\n".join(out)
 
 
+# ----------------------------
+# HTML
+# ----------------------------
+
 def html_page(now_sgt, win_start, win_end, en, zh):
     return f"""<!doctype html>
-<html><head><meta charset="utf-8"/>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>VoiceOfCrypto — Matrix Brief</title>
+
 <style>
 :root {{
---bg:#000;--fg:#00ff66;--dim:#00aa44;--line:rgba(0,255,102,.22);
---font-en:"American Typewriter","Courier New",Courier,ui-monospace,monospace;
---font-zh:"Songti SC","SimSun","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --bg:#000;
+  --fg:#00ff66;
+  --dim:#00aa44;
+  --line:rgba(0,255,102,.22);
+  --lineStrong:rgba(0,255,102,.55);
+  --hi:rgba(0,255,102,.10);
+
+  --font-en:"American Typewriter","Courier New",Courier,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --font-zh:"Songti SC","SimSun","Noto Serif CJK SC","Source Han Serif SC",serif;
 }}
-body{{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-en);}}
+
+html,body{{height:100%;}}
+body{{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-en);
+  letter-spacing:.2px;
+}}
+
+#matrix-rain {{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}}
+
+.wrap{{max-width:980px;margin:0 auto;padding:18px 14px 30px;}}
+.box{{border:1px solid var(--line);padding:12px;margin:10px 0;}}
+.title{{font-weight:800;}}
+.dim{{color:var(--dim);}}
+a{{color:var(--fg);text-decoration:underline;}}
+.row{{padding:10px 0;border-top:1px dashed var(--line);}}
+.row:first-child{{border-top:none;}}
+.pill{{display:inline-block;padding:1px 8px;border:1px solid var(--line);margin:0 6px;}}
+.mono{{font-weight:800;}}
+.t{{font-weight:600;}}
+
+.logo-ascii{{float:left;margin-right:12px;color:var(--dim);font-weight:800;line-height:1.25;}}
+.logo-ascii span{{display:block;}}
+
+.breaking .row{{
+  border-top:1px solid var(--lineStrong);
+  background:var(--hi);
+  animation:pulse 1.2s ease-in-out infinite;
+}}
+@keyframes pulse {{
+  0%{{background:rgba(0,255,102,.06)}}
+  50%{{background:rgba(0,255,102,.20)}}
+  100%{{background:rgba(0,255,102,.06)}}
+}}
+
 .zh{{font-family:var(--font-zh);}}
 .zh .title,.zh .mono,.zh .pill{{font-family:var(--font-en);}}
-.box{{border:1px solid var(--line);padding:12px;margin:10px;}}
-.logo-ascii{{float:left;margin-right:12px;color:var(--dim);font-weight:800;}}
-.logo-ascii span{{display:block;}}
-.row{{padding:8px 0;border-top:1px dashed var(--line);}}
-.breaking .row{{animation:pulse 1.2s infinite;}}
-@keyframes pulse{{0%{{background:rgba(0,255,102,.06)}}50%{{background:rgba(0,255,102,.2)}}100%{{background:rgba(0,255,102,.06)}}}}
-</style></head>
+</style>
+</head>
+
 <body>
-<div class="box">
-<div class="logo-ascii"><span>[ V ]</span><span>[ O ]</span><span>[ C ]</span></div>
-<div class="title">CRYPTO::GLOBAL_NEWS_ALARM | VOICEofCRYPTO | MATRIX BRIEF 🐶</div>
-<div class="dim">T+ : {now_sgt} (SGT)</div>
-<div class="dim">WIN : {win_start} → {win_end}</div>
+<canvas id="matrix-rain"></canvas>
+
+<div class="wrap">
+  <div class="box">
+    <div class="logo-ascii">
+      <span>[ V ]</span>
+      <span>[ O ]</span>
+      <span>[ C ]</span>
+    </div>
+    <div class="title">CRYPTO::GLOBAL_NEWS_ALARM | VOICEofCRYPTO | MATRIX BRIEF 🐶</div>
+    <div class="dim">T+   : {now_sgt} (Asia/Singapore)</div>
+    <div class="dim">WIN  : {win_start} → {win_end} (SGT)</div>
+  </div>
+
+  <div class="box">
+    <div class="title">[EN BRIEF]</div>
+    {en}
+  </div>
+
+  <div class="box zh">
+    <div class="title">[中文简报]</div>
+    {zh}
+  </div>
 </div>
 
-<div class="box">
-<div class="title">[EN BRIEF]</div>{en}
-</div>
+<script>
+(function () {{
+  const canvas = document.getElementById('matrix-rain');
+  const ctx = canvas.getContext('2d');
+  const chars = '0123456789+-×÷=∑∫√∞πλμσΔ';
+  const fontSize = 12;
+  const speed = 1;
+  let cols, drops;
 
-<div class="box zh">
-<div class="title">[中文简报]</div>{zh}
-</div>
-</body></html>"""
+  function resize() {{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols = Math.floor(canvas.width / fontSize);
+    drops = Array(cols).fill(0);
+  }}
 
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {{
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(0,255,102,0.08)';
+    ctx.font = fontSize + 'px monospace';
+
+    for (let i = 0; i < drops.length; i++) {{
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {{
+        drops[i] = 0;
+      }}
+      drops[i] += speed;
+    }}
+  }}
+
+  setInterval(draw, 40);
+})();
+</script>
+</body>
+</html>"""
+
+
+# ----------------------------
+# Main
+# ----------------------------
 
 def main():
     ap = argparse.ArgumentParser()
