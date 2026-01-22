@@ -1,0 +1,19 @@
+rss:
+  - name: CoinDesk
+    url: https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml
+  - name: Cointelegraph
+    url: https://cointelegraph.com/rss
+  - name: The Defiant
+    url: https://thedefiant.io/feed/
+  - name: CryptoSlate
+    url: https://cryptoslate.com/feed/
+
+# X 扫描两种方式：
+# 1) 推荐：把每个账号做成 RSS（例如你自建 RSSHub / 其它RSS转换服务），填到这里
+# 2) 或者：用 X API v2（需要 X_BEARER_TOKEN，通常是付费 API）
+x_rss:
+  # - name: WuBlockchain
+  #   url: https://<your-rss-endpoint>/twitter/user/WuBlockchain
+x_api_users:
+  # - WuBlockchain
+  # - CoinDesk
