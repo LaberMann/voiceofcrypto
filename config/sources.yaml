@@ -47,6 +47,20 @@ sources:
   # ======================
   # EN — MAINSTREAM (CRYPTO RELEVANT)
   # ======================
+  - id: reuters_crypto
+    name: Reuters Crypto
+    url: https://www.reuters.com/markets/cryptocurrencies/rss
+    lang: en
+    kind: news
+    weight: 0.9
+
+  - id: ft_crypto
+    name: Financial Times – Crypto
+    url: https://www.ft.com/cryptocurrencies?format=rss
+    lang: en
+    kind: news
+    weight: 0.85
+
   - id: bloomberg_crypto
     name: Bloomberg Crypto
     url: https://www.bloomberg.com/feeds/podcasts/crypto.xml
@@ -61,13 +75,6 @@ sources:
     kind: news
     weight: 0.75
 
-  - id: reuters_crypto
-    name: Reuters Crypto
-    url: https://www.reuters.com/markets/cryptocurrencies/rss
-    lang: en
-    kind: news
-    weight: 0.9
-
   - id: cnbc_crypto
     name: CNBC Crypto
     url: https://www.cnbc.com/id/10000664/device/rss/rss.html
@@ -75,20 +82,24 @@ sources:
     kind: news
     weight: 0.8
 
-  - id: ft_crypto
-    name: Financial Times – Crypto
-    url: https://www.ft.com/cryptocurrencies?format=rss
-    lang: en
-    kind: news
-    weight: 0.85
-
-  # CNN 没有纯 crypto RSS，用 Business + Crypto tag 是最稳做法
+  # CNN 无纯 crypto RSS，用 tech/business 兜底
   - id: cnn_crypto
     name: CNN Business – Crypto
     url: https://rss.cnn.com/rss/money_technology.rss
     lang: en
     kind: news
     weight: 0.6
+
+  # ======================
+  # EN — GOOGLE NEWS (KEYWORD AGGREGATION)
+  # Web3 / Stablecoin / RWA / Tokenization
+  # ======================
+  - id: gnews_web3_en
+    name: Google News (Web3 / Stablecoin / RWA, EN)
+    url: https://news.google.com/rss/search?q=(Web3%20OR%20stablecoin%20OR%20RWA%20OR%20%22real%20world%20asset%22%20OR%20tokenization)%20when:4h&hl=en-US&gl=US&ceid=US:en
+    lang: en
+    kind: news
+    weight: 0.7
 
   # ======================
   # ZH — 专业加密媒体
@@ -148,6 +159,17 @@ sources:
     lang: zh
     kind: newsflash
     weight: 0.8
+
+  # ======================
+  # ZH — GOOGLE NEWS（关键词聚合）
+  # Web3 / 稳定币 / RWA / 资产代币化
+  # ======================
+  - id: gnews_web3_zh
+    name: Google News（Web3 / 稳定币 / RWA，中文）
+    url: https://news.google.com/rss/search?q=(Web3%20OR%20稳定币%20OR%20RWA%20OR%20现实世界资产%20OR%20资产代币化)%20when:4h&hl=zh-CN&gl=SG&ceid=SG:zh-Hans
+    lang: zh
+    kind: news
+    weight: 0.65
 
 # X 扫描（先留空，等你决定用 RSSHub 还是 X API）
 x_rss: []
