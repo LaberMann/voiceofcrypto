@@ -6,6 +6,7 @@
 # - No per-item timestamps; only top banner has Send time + 4h window (Asia/Singapore)
 # - Each item title is a clickable hyperlink (no separate [LINKS] block)
 # - Breaking rows: highlighted + subtle pulse (CSS)
+# - Head box: add ASCII logo (dim) on the left + 🐶 marker; VOICEOFCRYPTO -> VOICEofCRYPTO
 # - Output: <out>/index.html + <out>/.nojekyll
 
 import argparse
@@ -292,6 +293,17 @@ def html_page(
   .t{{font-weight:600;}}
   .split{{height:1px;background:var(--line);margin:12px 0;}}
 
+  /* ASCII logo (left, Fallout/Pip-Boy style) */
+  .logo-ascii{{
+    float:left;
+    margin-right:12px;
+    color:var(--dim);
+    font-weight:800;
+    line-height:1.25;
+    letter-spacing:.6px;
+  }}
+  .logo-ascii .cell{{display:block;}}
+
   /* ===== Breaking Highlight + Pulse ===== */
   .breaking .row{{
     border-top: 1px solid var(--lineStrong);
@@ -317,7 +329,13 @@ def html_page(
 <body>
 <div class="wrap">
   <div class="box">
-    <div class="title">CRYPTO::GLOBAL_NEWS_ALARM  |  VOICEOFCRYPTO  |  MATRIX BRIEF</div>
+    <div class="logo-ascii">
+      <span class="cell">[ V ]</span>
+      <span class="cell">[ O ]</span>
+      <span class="cell">[ C ]</span>
+    </div>
+
+    <div class="title">CRYPTO::GLOBAL_NEWS_ALARM  |  VOICEofCRYPTO  |  MATRIX BRIEF  🐶</div>
     <div class="dim">T+   : {now_sgt} (Asia/Singapore)</div>
     <div class="dim">WIN  : {win_start} → {win_end} (SGT)  |  MODE: EN_sources & ZH_sources (no translation)</div>
   </div>
