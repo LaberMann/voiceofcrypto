@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # scripts/generate_site.py
 #
-# VoiceOfCrypto — Matrix Terminal Brief (EN then ZH)
+# VoiceofCrypto — Matrix Terminal Brief (EN then ZH)
 # - EN: typewriter / terminal
 # - ZH: Songti-style body, terminal-style headers & tags
 # - ASCII logo + 🐶
