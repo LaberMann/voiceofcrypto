@@ -1,19 +1,154 @@
-rss:
-  - name: CoinDesk
+sources:
+  # ======================
+  # EN — CRYPTO NATIVE
+  # ======================
+  - id: coindesk
+    name: CoinDesk
     url: https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml
-  - name: Cointelegraph
-    url: https://cointelegraph.com/rss
-  - name: The Defiant
-    url: https://thedefiant.io/feed/
-  - name: CryptoSlate
-    url: https://cryptoslate.com/feed/
+    lang: en
+    kind: news
+    weight: 1.0
 
-# X 扫描两种方式：
-# 1) 推荐：把每个账号做成 RSS（例如你自建 RSSHub / 其它RSS转换服务），填到这里
-# 2) 或者：用 X API v2（需要 X_BEARER_TOKEN，通常是付费 API）
-x_rss:
-  # - name: WuBlockchain
-  #   url: https://<your-rss-endpoint>/twitter/user/WuBlockchain
-x_api_users:
-  # - WuBlockchain
-  # - CoinDesk
+  - id: cointelegraph
+    name: Cointelegraph
+    url: https://cointelegraph.com/rss
+    lang: en
+    kind: news
+    weight: 0.95
+
+  - id: thedefiant
+    name: The Defiant
+    url: https://thedefiant.io/feed/
+    lang: en
+    kind: news
+    weight: 0.9
+
+  - id: cryptoslate
+    name: CryptoSlate
+    url: https://cryptoslate.com/feed/
+    lang: en
+    kind: news
+    weight: 0.85
+
+  - id: decrypt
+    name: Decrypt
+    url: https://decrypt.co/feed
+    lang: en
+    kind: news
+    weight: 0.85
+
+  - id: bitcoinmagazine
+    name: Bitcoin Magazine
+    url: https://bitcoinmagazine.com/.rss/full/
+    lang: en
+    kind: news
+    weight: 0.8
+
+  # ======================
+  # EN — MAINSTREAM (CRYPTO RELEVANT)
+  # ======================
+  - id: bloomberg_crypto
+    name: Bloomberg Crypto
+    url: https://www.bloomberg.com/feeds/podcasts/crypto.xml
+    lang: en
+    kind: news
+    weight: 0.8
+
+  - id: bloomberg_digital_assets
+    name: Bloomberg Digital Assets
+    url: https://www.bloomberg.com/feeds/bbiz/sitemap_digital-assets.xml
+    lang: en
+    kind: news
+    weight: 0.75
+
+  - id: reuters_crypto
+    name: Reuters Crypto
+    url: https://www.reuters.com/markets/cryptocurrencies/rss
+    lang: en
+    kind: news
+    weight: 0.9
+
+  - id: cnbc_crypto
+    name: CNBC Crypto
+    url: https://www.cnbc.com/id/10000664/device/rss/rss.html
+    lang: en
+    kind: news
+    weight: 0.8
+
+  - id: ft_crypto
+    name: Financial Times – Crypto
+    url: https://www.ft.com/cryptocurrencies?format=rss
+    lang: en
+    kind: news
+    weight: 0.85
+
+  # CNN 没有纯 crypto RSS，用 Business + Crypto tag 是最稳做法
+  - id: cnn_crypto
+    name: CNN Business – Crypto
+    url: https://rss.cnn.com/rss/money_technology.rss
+    lang: en
+    kind: news
+    weight: 0.6
+
+  # ======================
+  # ZH — 专业加密媒体
+  # ======================
+  - id: odaily_news
+    name: Odaily
+    url: https://rss.odaily.news/rss/news
+    lang: zh
+    kind: news
+    weight: 1.0
+
+  - id: odaily_newsflash
+    name: Odaily 快讯
+    url: https://rss.odaily.news/rss/newsflash
+    lang: zh
+    kind: newsflash
+    weight: 1.0
+
+  - id: blockbeats_article
+    name: BlockBeats
+    url: https://api.theblockbeats.news/v2/rss/article
+    lang: zh
+    kind: news
+    weight: 1.0
+
+  - id: blockbeats_newsflash
+    name: BlockBeats 快讯
+    url: https://api.theblockbeats.news/v2/rss/newsflash
+    lang: zh
+    kind: newsflash
+    weight: 1.0
+
+  - id: panews_news
+    name: PANews
+    url: https://rss.panewslab.com/zh/gtimg/rss
+    lang: zh
+    kind: news
+    weight: 0.9
+
+  - id: panews_newsflash
+    name: PANews 快讯
+    url: https://rss.panewslab.com/zh/tvsq/rss
+    lang: zh
+    kind: newsflash
+    weight: 0.9
+
+  - id: techflow
+    name: 深潮 TechFlow
+    url: https://www.techflowpost.com/rss.xml
+    lang: zh
+    kind: news
+    weight: 0.85
+
+  - id: jinse
+    name: 金色财经
+    url: https://www.jinse.com/rss
+    lang: zh
+    kind: newsflash
+    weight: 0.8
+
+# X 扫描（先留空，等你决定用 RSSHub 还是 X API）
+x_rss: []
+x_api_users: []
