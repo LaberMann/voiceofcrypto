@@ -4,13 +4,13 @@
 # VoiceOfCrypto — Matrix Terminal Brief (EN then ZH)
 # - No OpenAI needed: EN brief uses EN sources; ZH brief uses ZH sources (no translation)
 # - No per-item timestamps; only top banner has Send time + 4h window (Asia/Singapore)
-# - Each item includes a clickable source URL (in [LINKS] section + per-item index refs)
+# - Each item title is a clickable hyperlink (no separate [LINKS] block)
+# - Breaking rows: highlighted + subtle pulse (CSS)
 # - Output: <out>/index.html + <out>/.nojekyll
 
 import argparse
 import os
 import re
-import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
@@ -72,12 +72,10 @@ def score_item(title: str, kind: str = "news") -> float:
 
 def safe_parse_dt(entry) -> Optional[datetime]:
     """Try best-effort time extraction from RSS entry."""
-    # feedparser sometimes provides structured time tuples too; we keep it simple.
     for key in ("published", "updated", "pubDate"):
         if getattr(entry, key, None):
             try:
-                dt = dtparser.parse(getattr(entry, key))
-                return dt
+                return dtparser.parse(getattr(entry, key))
             except Exception:
                 pass
     return None
@@ -159,7 +157,6 @@ def fetch_items(sources: List[SourceCfg], tz, win_start: datetime, win_end: date
             if not dt:
                 continue
             if dt.tzinfo is None:
-                # assume UTC if no tzinfo
                 dt = pytz.UTC.localize(dt)
             dt_sgt = dt.astimezone(tz)
             if not (win_start <= dt_sgt <= win_end):
@@ -192,7 +189,6 @@ def dedup(items: List[Item]) -> List[Item]:
     seen_link = set()
     out: List[Item] = []
 
-    # Sort: higher score first; then newer
     def key(it: Item):
         return (-it.score, it.published_sgt)
 
@@ -207,11 +203,9 @@ def dedup(items: List[Item]) -> List[Item]:
 
 
 def pick_sections(items: List[Item]) -> Tuple[List[Item], List[Item], List[Item]]:
-    # Breaking heuristic: top score >= 8.8
     items_sorted = sorted(items, key=lambda x: (-x.score, x.published_sgt))
     breaking = [x for x in items_sorted if x.score >= 8.8][:2]
     remaining = [x for x in items_sorted if x not in breaking]
-
     headlines = remaining[:5]
     quick = remaining[5:17]
     return headlines, breaking, quick
@@ -223,7 +217,7 @@ def pick_sections(items: List[Item]) -> Tuple[List[Item], List[Item], List[Item]
 
 def render_section(items: List[Item], prefix: str) -> str:
     if not items:
-        return '<div class="row dim">-- empty --</div>'
+        return '<div class="row dim empty">-- empty --</div>'
 
     rows = []
     for i, it in enumerate(items, start=1):
@@ -254,23 +248,12 @@ def render_section(items: List[Item], prefix: str) -> str:
     return "\n".join(rows)
 
 
-def build_links_block(links: List[Tuple[int, str, str]]) -> str:
-    # (idx, source, url)
-    lis = []
-    for idx, source, url in links:
-        esc_url = url.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        esc_src = source.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        lis.append(f'<li>({idx}) [{esc_src}] <a href="{esc_url}" target="_blank" rel="noreferrer">{esc_url}</a></li>')
-    return "\n".join(lis)
-
-
 def html_page(
     now_sgt: str,
     win_start: str,
     win_end: str,
     en_blocks: Dict[str, str],
     zh_blocks: Dict[str, str],
-    links_html: str,
 ) -> str:
     return f"""<!doctype html>
 <html>
@@ -284,6 +267,9 @@ def html_page(
     --fg:#00ff66;
     --dim:#00aa44;
     --line:rgba(0,255,102,.22);
+    --lineStrong:rgba(0,255,102,.55);
+    --hi:rgba(0,255,102,.10);
+    --hi2:rgba(0,255,102,.18);
   }}
   html,body{{height:100%;}}
   body{{
@@ -305,8 +291,27 @@ def html_page(
   .mono{{font-weight:800;}}
   .t{{font-weight:600;}}
   .split{{height:1px;background:var(--line);margin:12px 0;}}
-  ul.links{{margin:8px 0 0 18px;padding:0;}}
-  ul.links li{{margin:7px 0;}}
+
+  /* ===== Breaking Highlight + Pulse ===== */
+  .breaking .row{{
+    border-top: 1px solid var(--lineStrong);
+    background: var(--hi);
+    box-shadow: 0 0 14px rgba(0,255,102,.14) inset;
+  }}
+  @keyframes matrixPulse {{
+    0%   {{ background: rgba(0,255,102,.06); }}
+    50%  {{ background: rgba(0,255,102,.20); }}
+    100% {{ background: rgba(0,255,102,.06); }}
+  }}
+  .breaking .row{{
+    animation: matrixPulse 1.2s ease-in-out infinite;
+  }}
+  .breaking .row.empty{{
+    animation: none;
+    background: transparent;
+    box-shadow: none;
+    border-top: 1px dashed var(--line);
+  }}
 </style>
 </head>
 <body>
@@ -326,7 +331,9 @@ def html_page(
 
     <div class="split"></div>
     <div class="title dim">> [BREAKING]</div>
-    {en_blocks.get("breaking","")}
+    <div class="breaking">
+      {en_blocks.get("breaking","")}
+    </div>
 
     <div class="split"></div>
     <div class="title dim">> [QUICK_HITS]</div>
@@ -342,18 +349,13 @@ def html_page(
 
     <div class="split"></div>
     <div class="title dim">> [突发]</div>
-    {zh_blocks.get("breaking","")}
+    <div class="breaking">
+      {zh_blocks.get("breaking","")}
+    </div>
 
     <div class="split"></div>
     <div class="title dim">> [快讯]</div>
     {zh_blocks.get("quick","")}
-  </div>
-
-  <div class="box sec">
-    <div class="title">[LINKS]</div>
-    <ul class="links">
-      {links_html}
-    </ul>
   </div>
 </div>
 </body>
@@ -388,34 +390,16 @@ def main():
     en_head, en_break, en_quick = pick_sections(en_items)
     zh_head, zh_break, zh_quick = pick_sections(zh_items)
 
-    # Build unified LINKS list (dedup links across both)
-    link_index_map: Dict[str, int] = {}
-    links: List[Tuple[int, str, str]] = []
-
-    def register_links(items: List[Item]):
-        nonlocal links
-        for it in items:
-            if it.link in link_index_map:
-                continue
-            idx = len(link_index_map) + 1
-            link_index_map[it.link] = idx
-            links.append((idx, it.source, it.link))
-
-    # Register in display order (EN first, then ZH)
-    register_links(en_head); register_links(en_break); register_links(en_quick)
-    register_links(zh_head); register_links(zh_break); register_links(zh_quick)
-
     en_blocks = {
-        "headlines": render_section(en_head, "H", link_index_map, "en"),
-        "breaking":  render_section(en_break, "B", link_index_map, "en"),
-        "quick":     render_section(en_quick, "Q", link_index_map, "en"),
+        "headlines": render_section(en_head, "H"),
+        "breaking":  render_section(en_break, "B"),
+        "quick":     render_section(en_quick, "Q"),
     }
     zh_blocks = {
-        "headlines": render_section(zh_head, "H", link_index_map, "zh"),
-        "breaking":  render_section(zh_break, "B", link_index_map, "zh"),
-        "quick":     render_section(zh_quick, "Q", link_index_map, "zh"),
+        "headlines": render_section(zh_head, "H"),
+        "breaking":  render_section(zh_break, "B"),
+        "quick":     render_section(zh_quick, "Q"),
     }
-    links_html = build_links_block(links)
 
     os.makedirs(args.out, exist_ok=True)
     with open(os.path.join(args.out, ".nojekyll"), "w", encoding="utf-8") as f:
@@ -427,7 +411,6 @@ def main():
         win_end=win_end.strftime("%H:%M"),
         en_blocks=en_blocks,
         zh_blocks=zh_blocks,
-        links_html=links_html
     )
     with open(os.path.join(args.out, "index.html"), "w", encoding="utf-8") as f:
         f.write(page)
