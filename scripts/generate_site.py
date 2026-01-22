@@ -221,28 +221,34 @@ def pick_sections(items: List[Item]) -> Tuple[List[Item], List[Item], List[Item]
 # HTML Rendering (Matrix UI)
 # ----------------------------
 
-def render_section(items: List[Item], prefix: str, link_index_map: Dict[str, int], lang_label: str) -> str:
-    """
-    Each row:
-      [H1][9.1][Markets] Title
-           ↳ src: (12) SourceName
-    """
+def render_section(items: List[Item], prefix: str) -> str:
     if not items:
         return '<div class="row dim">-- empty --</div>'
 
     rows = []
     for i, it in enumerate(items, start=1):
-        tag = it.cls
-        idx = link_index_map[it.link]
-        # escape minimal
-        title = it.title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        title = (
+            it.title
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+        url = (
+            it.link
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
         rows.append(
             f'<div class="row">'
-            f'<div><span class="mono">[{prefix}{i}]</span>'
+            f'<div>'
+            f'<span class="mono">[{prefix}{i}]</span>'
             f'<span class="pill">[{it.score}/10]</span>'
-            f'<span class="pill dim">[{tag}]</span> '
-            f'<span class="t">{title}</span></div>'
-            f'<div class="dim">↳ src: ({idx}) {it.source}</div>'
+            f'<span class="pill dim">[{it.cls}]</span> '
+            f'<a class="t" href="{url}" target="_blank" rel="noreferrer">{title}</a>'
+            f'</div>'
+            f'<div class="dim">↳ src: {it.source}</div>'
             f'</div>'
         )
     return "\n".join(rows)
