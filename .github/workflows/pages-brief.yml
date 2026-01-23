@@ -1,12 +1,13 @@
 name: VoiceofCrypto Matrix Brief (Pages V2)
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "5 0 * * *"   # 08:05 SGT
     - cron: "5 4 * * *"   # 12:05 SGT
     - cron: "5 8 * * *"   # 16:05 SGT
     - cron: "5 12 * * *"  # 20:05 SGT
-  workflow_dispatch: {}
+
 
 permissions:
   contents: read
@@ -14,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "pages-v2"
   cancel-in-progress: false
 
 jobs:
