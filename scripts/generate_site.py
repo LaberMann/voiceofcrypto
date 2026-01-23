@@ -348,6 +348,29 @@ a{color:var(--fg);text-decoration:underline;}
             .replace("%%ZH_HTML%%", zh_html)
             )
 
+import os
+
+def log_trigger_info():
+    # GitHub 会自动注入这些环境变量
+    workflow_name = os.getenv('GITHUB_WORKFLOW', 'Local Run')
+    actor = os.getenv('GITHUB_ACTOR', 'Unknown')
+    event_name = os.getenv('GITHUB_EVENT_NAME', 'manual/local')
+    
+    print("-" * 30)
+    print(f"🚀 工作流名称: {workflow_name}")
+    print(f"👤 执行角色 (Actor): {actor}")
+    print(f"📅 触发事件 (Event): {event_name}")
+    
+    if event_name == 'schedule':
+        print("⏰ 状态确认: 这是一个定时自动触发的任务")
+    elif event_name == 'workflow_dispatch':
+        print("🖱️ 状态确认: 这是一个手动点击触发的任务")
+    print("-" * 30)
+
+# 在程序启动时调用
+if __name__ == "__main__":
+    log_trigger_info()
+    # ... 你原来的 generate_site 逻辑 ...
 
 # ----------------------------
 # Main
