@@ -188,6 +188,112 @@ def render_section(items: List[Item], prefix: str) -> str:
             f'</div><div class="dim">↳ src: {it.source}</div></div>'
         )
     return "\n".join(out)
+import math
+from datetime import datetime
+
+def detect_site_base() -> str:
+    """
+    GitHub Pages 项目站点通常是 /<repo>/
+    在 Actions 里可以从 GITHUB_REPOSITORY 自动推断。
+    本地运行返回 ""，链接就会是相对根路径。
+    """
+    repo = (os.getenv("GITHUB_REPOSITORY") or "").strip()  # e.g. LaberMann/voiceofcrypto
+    if "/" in repo:
+        return "/" + repo.split("/", 1)[1]
+    return ""
+
+def url_join(base: str, path: str) -> str:
+    base = (base or "").rstrip("/")
+    path = (path or "").lstrip("/")
+    if not base:
+        return "/" + path
+    return base + "/" + path
+
+def write_index_html(dirpath: str, html: str):
+    os.makedirs(dirpath, exist_ok=True)
+    with open(os.path.join(dirpath, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+
+def render_all_rows(items: List[Item], tz) -> str:
+    if not items:
+        return '<div class="row dim empty">-- empty --</div>'
+
+    out = []
+    for i, it in enumerate(items, 1):
+        title = (it.title or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        link = (it.link or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+        # 时间显示成 HH:MM（SGT）
+        try:
+            dt = datetime.fromisoformat(it.published_sgt)
+            hhmm = dt.astimezone(tz).strftime("%H:%M")
+        except Exception:
+            hhmm = "??:??"
+
+        lang = (it.lang or "").upper()
+        out.append(
+            f'<div class="row"><div>'
+            f'<span class="mono">[A{i}]</span>'
+            f'<span class="pill">[{it.score}/10]</span>'
+            f'<span class="pill dim">[{it.cls}]</span>'
+            f'<span class="pill dim">[{lang}]</span> '
+            f'<span class="dim">{hhmm}</span> '
+            f'<a class="t" href="{link}" target="_blank" rel="noreferrer">{title}</a>'
+            f'</div><div class="dim">↳ src: {it.source}</div></div>'
+        )
+    return "\n".join(out)
+
+def render_pager(current: int, total: int, base_url: str) -> str:
+    # base_url: 例如 "/voiceofcrypto/all"
+    def page_url(p: int) -> str:
+        if p == 1:
+            return base_url + "/"
+        return f"{base_url}/page/{p}/"
+
+    prev_html = f'<a class="pill" href="{page_url(current-1)}">Prev</a>' if current > 1 else '<span class="pill dim">Prev</span>'
+    next_html = f'<a class="pill" href="{page_url(current+1)}">Next</a>' if current < total else '<span class="pill dim">Next</span>'
+
+    return (
+        f'<div class="row" style="border-top:1px solid var(--line);">'
+        f'{prev_html}'
+        f'<span class="pill dim">Page {current}/{total}</span>'
+        f'{next_html}'
+        f'</div>'
+    )
+
+def build_all_pages(all_items: List[Item], tz, now, win_start, win_end, out_root: str, per_page: int):
+    # 全量列表：按时间倒序，其次按分数
+    items_sorted = sorted(all_items, key=lambda x: (x.published_sgt, x.score), reverse=True)
+
+    total_pages = max(1, math.ceil(len(items_sorted) / per_page))
+    site_base = detect_site_base()
+    all_base = url_join(site_base, "all")  # e.g. /voiceofcrypto/all
+
+    for p in range(1, total_pages + 1):
+        s = (p - 1) * per_page
+        e = s + per_page
+        chunk_items = items_sorted[s:e]
+
+        all_html = (
+            '<div class="title dim">> [ALL_ITEMS]</div>' +
+            render_all_rows(chunk_items, tz) +
+            render_pager(p, total_pages, all_base)
+        )
+
+        # 用你现有的壳：EN 区放全量列表，ZH 区给个提示（也可以留空）
+        page = html_page(
+            now_sgt=now.strftime("%Y-%m-%d %H:%M:%S"),
+            win_start=win_start.strftime("%H:%M"),
+            win_end=win_end.strftime("%H:%M"),
+            en_html=all_html,
+            zh_html='<div class="row dim">-- all items list --</div>',
+        )
+
+        if p == 1:
+            out_dir = os.path.join(out_root, "all")
+        else:
+            out_dir = os.path.join(out_root, "all", "page", str(p))
+        write_index_html(out_dir, page)
 
 
 # ----------------------------
@@ -347,30 +453,6 @@ a{color:var(--fg);text-decoration:underline;}
             .replace("%%EN_HTML%%", en_html)
             .replace("%%ZH_HTML%%", zh_html)
             )
-
-import os
-
-def log_trigger_info():
-    # GitHub 会自动注入这些环境变量
-    workflow_name = os.getenv('GITHUB_WORKFLOW', 'Local Run')
-    actor = os.getenv('GITHUB_ACTOR', 'Unknown')
-    event_name = os.getenv('GITHUB_EVENT_NAME', 'manual/local')
-    
-    print("-" * 30)
-    print(f"🚀 工作流名称: {workflow_name}")
-    print(f"👤 执行角色 (Actor): {actor}")
-    print(f"📅 触发事件 (Event): {event_name}")
-    
-    if event_name == 'schedule':
-        print("⏰ 状态确认: 这是一个定时自动触发的任务")
-    elif event_name == 'workflow_dispatch':
-        print("🖱️ 状态确认: 这是一个手动点击触发的任务")
-    print("-" * 30)
-
-# 在程序启动时调用
-if __name__ == "__main__":
-    log_trigger_info()
-    # ... 你原来的 generate_site 逻辑 ...
 
 # ----------------------------
 # Main
